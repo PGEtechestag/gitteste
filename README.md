@@ -1,2 +1,0 @@
-# 🎉 Olá Estagiários da PGE! 👋
-
