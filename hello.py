@@ -1,3 +1,7 @@
 print("Olá, mundo!")
 print("Bem-vindo ao repositório de teste do Git!")
 print("Oi, aqui é o Íris!")
+print("esse código foi alterado 1 vez")
+print("Esse código foi alterado de novo")
+print("olá aqui é o Felipe")
+print("Oi, aqui é o Caio!")
