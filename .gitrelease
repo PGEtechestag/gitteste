@@ -1,0 +1,12 @@
+v1.0.0 - Snake Premium Release
+
+Features:
+- Snake Premium game implementation with Pygame
+- Advanced visual effects (animated background, particles, glow effects)
+- Sound effects and combo system
+- High score tracking
+- Smooth animations and transitions
+- Game states (menu, playing, paused, game over, victory)
+
+Files added:
+- jogo/snake_pygame.py: Main game implementation
