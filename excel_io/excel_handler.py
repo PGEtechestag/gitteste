@@ -24,8 +24,9 @@ def importar_excel(caminho_arquivo, callback_progresso=None):
         total = len(df)
         erros = []
         dados_lista = []
+        intervalo_callback = max(1, total // 200)
 
-        for idx, row in df.iterrows():
+        for i, (idx, row) in enumerate(df.iterrows()):
             try:
                 cpf = str(int(row["cpf"])).zfill(11) if pd.notna(row["cpf"]) else ""
                 if not cpf:
@@ -53,7 +54,12 @@ def importar_excel(caminho_arquivo, callback_progresso=None):
             except Exception as e:
                 erros.append(f"Linha {idx+2}: {str(e)}")
 
+            if callback_progresso and (i % intervalo_callback == 0 or i == total - 1):
+                callback_progresso(i + 1, total)
+
         if dados_lista:
+            if callback_progresso:
+                callback_progresso(total, total, "Salvando no banco de dados, aguarde...")
             db.inserir_varios(dados_lista)
             inseridos = len(dados_lista)
             if callback_progresso:
@@ -69,6 +75,136 @@ def importar_excel(caminho_arquivo, callback_progresso=None):
         return True, msg
     except Exception as e:
         return False, f"Erro ao ler arquivo: {str(e)}"
+
+COLUNAS_CONFERENCIA_COM_PROCESSO = ["nome", "rg", "cpf", "processo"]
+COLUNAS_CONFERENCIA_SEM_PROCESSO = ["nome", "rg", "cpf"]
+
+def importar_planilha_conferencia(caminho_arquivo, secretaria, callback_progresso=None):
+    """Importa planilha de conferência para uma secretaria. Detecta automaticamente o formato:
+    - com coluna 'processo': um processo por linha (vários por CPF) -> processos_conferencia
+    - sem coluna 'processo': um CPF por linha, sem processo vinculado -> cpfs_sem_processo
+    """
+    secretaria = (secretaria or "").strip()
+    if not secretaria:
+        return False, "Informe a secretaria ou órgão responsável antes de importar."
+
+    try:
+        df = pd.read_excel(caminho_arquivo, sheet_name=0)
+        df.columns = [c.strip().lower() for c in df.columns]
+
+        if "processo" in df.columns:
+            return _importar_conferencia_com_processo(df, secretaria, callback_progresso)
+        elif "cpf" in df.columns:
+            return _importar_conferencia_sem_processo(df, secretaria, callback_progresso)
+        else:
+            return False, "Formato de planilha não reconhecido: é necessária ao menos a coluna 'cpf'."
+    except Exception as e:
+        return False, f"Erro ao ler arquivo: {str(e)}"
+
+
+def _importar_conferencia_com_processo(df, secretaria, callback_progresso=None):
+    faltantes = [c for c in COLUNAS_CONFERENCIA_COM_PROCESSO if c not in df.columns]
+    if faltantes:
+        return False, f"Colunas faltantes na planilha: {', '.join(faltantes)}"
+
+    total = len(df)
+    erros = []
+    dados_lista = []
+    agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    intervalo_callback = max(1, total // 200)
+
+    for i, (idx, row) in enumerate(df.iterrows()):
+        try:
+            if pd.isna(row["cpf"]):
+                erros.append(f"Linha {idx+2}: CPF vazio")
+                continue
+            cpf = str(int(row["cpf"])).zfill(11)
+
+            processo = str(row["processo"]).strip() if pd.notna(row["processo"]) else ""
+            if not processo:
+                erros.append(f"Linha {idx+2}: processo vazio")
+                continue
+
+            dados_lista.append({
+                "cpf": cpf,
+                "nome": str(row["nome"]).strip() if pd.notna(row["nome"]) else "",
+                "rg": str(row["rg"]) if pd.notna(row["rg"]) else "",
+                "processo": processo,
+                "secretaria": secretaria,
+                "data_atualizacao": agora,
+            })
+        except Exception as e:
+            erros.append(f"Linha {idx+2}: {str(e)}")
+
+        if callback_progresso and (i % intervalo_callback == 0 or i == total - 1):
+            callback_progresso(i + 1, total)
+
+    if dados_lista:
+        if callback_progresso:
+            callback_progresso(total, total, "Salvando no banco de dados, aguarde...")
+        db.inserir_processos_conferencia(dados_lista)
+        inseridos = len(dados_lista)
+        if callback_progresso:
+            callback_progresso(inseridos, total)
+    else:
+        inseridos = 0
+
+    msg = f"Importação concluída: {inseridos}/{total} processos vinculados à secretaria \"{secretaria}\"."
+    if erros:
+        msg += f" {len(erros)} erro(s): " + "; ".join(erros[:10])
+        if len(erros) > 10:
+            msg += f"... e mais {len(erros)-10}."
+    return True, msg
+
+
+def _importar_conferencia_sem_processo(df, secretaria, callback_progresso=None):
+    faltantes = [c for c in COLUNAS_CONFERENCIA_SEM_PROCESSO if c not in df.columns]
+    if faltantes:
+        return False, f"Colunas faltantes na planilha: {', '.join(faltantes)}"
+
+    total = len(df)
+    erros = []
+    dados_lista = []
+    agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    intervalo_callback = max(1, total // 200)
+
+    for i, (idx, row) in enumerate(df.iterrows()):
+        try:
+            if pd.isna(row["cpf"]):
+                erros.append(f"Linha {idx+2}: CPF vazio")
+                continue
+            cpf = str(int(row["cpf"])).zfill(11)
+
+            dados_lista.append({
+                "cpf": cpf,
+                "nome": str(row["nome"]).strip() if pd.notna(row["nome"]) else "",
+                "rg": str(row["rg"]) if pd.notna(row["rg"]) else "",
+                "secretaria": secretaria,
+                "data_atualizacao": agora,
+            })
+        except Exception as e:
+            erros.append(f"Linha {idx+2}: {str(e)}")
+
+        if callback_progresso and (i % intervalo_callback == 0 or i == total - 1):
+            callback_progresso(i + 1, total)
+
+    if dados_lista:
+        if callback_progresso:
+            callback_progresso(total, total, "Salvando no banco de dados, aguarde...")
+        db.inserir_cpfs_sem_processo(dados_lista)
+        inseridos = len(dados_lista)
+        if callback_progresso:
+            callback_progresso(inseridos, total)
+    else:
+        inseridos = 0
+
+    msg = f"Importação concluída: {inseridos}/{total} CPFs sem processo vinculados à secretaria \"{secretaria}\"."
+    if erros:
+        msg += f" {len(erros)} erro(s): " + "; ".join(erros[:10])
+        if len(erros) > 10:
+            msg += f"... e mais {len(erros)-10}."
+    return True, msg
+
 
 def exportar_excel(caminho_saida):
     try:

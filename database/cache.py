@@ -17,6 +17,12 @@ _dados = {
     "geral": 0,
     "ultima": None,
     "status": {},
+    "conferencia_pendente": 0,
+    "conferencia_total": 0,
+    "conferencia_cpfs": 0,
+    "sem_processo_cpfs": 0,
+    "cpfs_totais": 0,
+    "secretarias": [],
     "valido": False,
 }
 _db = None
@@ -36,6 +42,12 @@ def _recarregar():
     db = _get_db()
     m = db.metricas_dashboard()
     status = db.contar_por_status()
+    conferencia_pendente = db.contar_conferencia_pendentes()
+    conferencia_total = db.contar_conferencia_total()
+    conferencia_cpfs = db.contar_conferencia_cpfs_unicos()
+    sem_processo_cpfs = db.contar_cpfs_sem_processo()
+    cpfs_totais = db.contar_cpfs_totais()
+    secretarias = db.contar_cpfs_por_secretaria()
     with _lock:
         _dados["total"] = m["total_pessoas"]
         _dados["fazenda"] = m["total_fazenda"]
@@ -43,6 +55,12 @@ def _recarregar():
         _dados["geral"] = m["total_geral"]
         _dados["ultima"] = m["ultima_atualizacao"]
         _dados["status"] = status
+        _dados["conferencia_pendente"] = conferencia_pendente
+        _dados["conferencia_total"] = conferencia_total
+        _dados["conferencia_cpfs"] = conferencia_cpfs
+        _dados["sem_processo_cpfs"] = sem_processo_cpfs
+        _dados["cpfs_totais"] = cpfs_totais
+        _dados["secretarias"] = secretarias
         _dados["valido"] = True
 
 
@@ -84,3 +102,27 @@ def status():
 
 def ultima():
     return obter_metricas()["ultima"]
+
+
+def conferencia_pendente():
+    return obter_metricas()["conferencia_pendente"]
+
+
+def conferencia_total():
+    return obter_metricas()["conferencia_total"]
+
+
+def conferencia_cpfs():
+    return obter_metricas()["conferencia_cpfs"]
+
+
+def sem_processo_cpfs():
+    return obter_metricas()["sem_processo_cpfs"]
+
+
+def cpfs_totais():
+    return obter_metricas()["cpfs_totais"]
+
+
+def secretarias():
+    return obter_metricas()["secretarias"]

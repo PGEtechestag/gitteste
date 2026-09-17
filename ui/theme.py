@@ -15,13 +15,13 @@ from PIL import Image
 # Identidade visual: Procuradoria Geral do Estado de São Paulo
 # Vermelho Sampa (carmesí institucional) + Ouro Paulista + neutros cálidos,
 # con alto contraste para lectura cómoda en modo claro e escuro.
-BG = ("#F4F2EC", "#14161D")            # fundo xeral (marfil papel / grafito)
-CARD = ("#FFFFFF", "#1C212B")          # fondo dos cards
-CARD_HOVER = ("#FAF8F2", "#262C37")    # hover dos cards
-CARD_BORDER = ("#E4DFD3", "#333C49")   # bordo dos cards
-FIELD = ("#EFEBE2", "#1A202A")         # fondo de campos/entradas
-FIELD_BORDER = ("#D8D2C3", "#3B4552")
-ROW_ALT = ("#F8F5EF", "#252C37")       # liñas alternadas en tablas
+BG = ("#F4F2EC", "#16233D")            # fundo xeral (marfil papel / azul marinho)
+CARD = ("#FFFFFF", "#1E2F4E")          # fondo dos cards
+CARD_HOVER = ("#FAF8F2", "#263A5C")    # hover dos cards
+CARD_BORDER = ("#E4DFD3", "#34496A")   # bordo dos cards
+FIELD = ("#EFEBE2", "#1A2A46")         # fondo de campos/entradas
+FIELD_BORDER = ("#D8D2C3", "#34496A")
+ROW_ALT = ("#F8F5EF", "#223454")       # liñas alternadas en tablas
 
 # Accent institucional (Vermello Sampa da bandeira do Estado)
 ACCENT = ("#8F1A2A", "#C83846")        # carmesí PGE
@@ -37,8 +37,8 @@ ORO_FONDO = ("#F5E7C0", "#3E3218")     # fondo para badges dourados
 
 # Texto
 TEXTO = ("#232831", "#F2EFE9")         # texto principal
-TEXTO_SEC = ("#6B7280", "#A8AEB8")     # texto secundario
-TEXTO_MUTED = ("#9AA0A6", "#6B7280")
+TEXTO_SEC = ("#6B7280", "#93A4C2")     # texto secundario (tom azulado)
+TEXTO_MUTED = ("#9AA0A6", "#7488A8")
 
 # ===== Paleta expandida de status / categorias =====
 # Cores sólidas (mesmo valor nos dous temas)
@@ -96,9 +96,9 @@ GRADIENTE_ROXO = ("#8B5CF6", "#5B2D8C")
 GRADIENTE_ROSA = ("#EC6390", "#AD1E44")
 
 # Cores sólidas para fondos de gráficos (Canvas non acepta tuplas)
-CHART_BG = {"Light": "#FFFFFF", "Dark": "#1C212B"}
-CHART_GRID = {"Light": "#E4DFD3", "Dark": "#333C49"}
-CHART_TEXT = {"Light": "#6B7280", "Dark": "#A8AEB8"}
+CHART_BG = {"Light": "#FFFFFF", "Dark": "#1E2F4E"}
+CHART_GRID = {"Light": "#E4DFD3", "Dark": "#34496A"}
+CHART_TEXT = {"Light": "#6B7280", "Dark": "#8DA0C4"}
 
 FONTE = "Segoe UI"
 
@@ -294,7 +294,7 @@ class ToolTip:
         self.texto = texto
         self.delay = delay
         self.wraplength = wraplength
-        self.cor_fundo = cor_fundo or ("#2A3240", "#0E1015")
+        self.cor_fundo = cor_fundo or ("#2A3240", "#152438")
         self.cor_texto = cor_texto
         self._tip = None
         self._after_id = None
@@ -339,7 +339,7 @@ class ToolTip:
             pass
         frame = ctk.CTkFrame(
             self._tip, fg_color=self.cor_fundo, corner_radius=8,
-            border_width=1, border_color=("#D8D2C3", "#3B4552"),
+            border_width=1, border_color=("#D8D2C3", "#34496A"),
         )
         frame.pack(fill="both", expand=True, padx=0, pady=0)
         label = ctk.CTkLabel(
